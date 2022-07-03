@@ -248,7 +248,7 @@ class Loading_Page(tornado.web.RequestHandler):
 					url = "https:"+url
 				Chrome.get(url)
 			except Exception:
-				url = Open_Url(url)
+				url = "error"
 			try:
 				error_message = Chrome.find_element("id","main-message")
 			except Exception:
@@ -256,6 +256,8 @@ class Loading_Page(tornado.web.RequestHandler):
 			else:
 				url = "error"
 			if url != "error":
+				Chrome.refresh()
+				time.sleep(30)
 				try:
 					elements = Chrome.find_element("css selector",css_selector).text
 				except Exception:
@@ -332,16 +334,23 @@ class Loading_Page(tornado.web.RequestHandler):
 				web_information.pop(0)
 				web_information.pop(0)
 				web_information.pop(0)
+				organized_web_info = [web_information[0],web_information[1]]
 			else:
-				next_page = "Home_Page"
-				line = web_information[3]+","+web_information[0]+","+web_information[1]+","+web_information[2]
-				print(updated_all_lines)
-				print(line)
-				updated_all_lines.append(line)
-				Inventory.close()
-				Inventory = open("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/Inventory_File.csv","w")
-				Inventory.write("\n".join(updated_all_lines))
-				Inventory.close()
+				organized_web_info = []
+				if len(web_information) == 6:
+					next_page = "Add_Url_Page"
+					organized_web_info.extend([web_information[4],web_information[0],web_information[1],web_information[2],web_information[-1]])
+				else:
+					next_page = "Home_Page"
+					organized_web_info.extend([web_information[3],web_information[0],web_information[1],web_information[2],web_information[-1]])
+					print(updated_all_lines)
+					print()
+					updated_all_lines.append(",".join(organized_web_info))
+					Inventory.close()
+					Inventory = open("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/Inventory_File.csv","w")
+					Inventory.write("\n".join(updated_all_lines))
+					Inventory.close()
+		
 			self.write("""<!DOCTYPE html>
 	<html>
 	<head>
@@ -371,7 +380,7 @@ class Loading_Page(tornado.web.RequestHandler):
 	<body>
 
 	<div class="loader"></div>
-	<form action = "/"""+next_page+""""><input type = "hidden" value = " """ + ",".join(web_information)+ """ " name = "Item_Info"><input type = "submit" value = "Continue"></form>
+	<form action = "/"""+next_page+""""><input type = "hidden" value = " """ + ",".join(organized_web_info)+ """ " name = "Item_Info"><input type = "submit" value = "Continue"></form>
 
 
 	</body>
@@ -384,8 +393,7 @@ class Error_Page(tornado.web.RequestHandler):
 	def get(self):
 		web_information = self.get_argument("Item_Info").split(",")
 		web_information.pop(-1)
-		if self.get_argument("Item_Info").split(",")[-1] == "Add_Url_Page":
-			self.write("""<!DOCTYPE html>
+		self.write("""<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
@@ -395,9 +403,10 @@ class Error_Page(tornado.web.RequestHandler):
 </head>
 <body>
 	<h1>Error Page</h1>
-	<form action = "/Add_Url_Page""><input type = "hidden" value = " """+ ",".join(web_information)+"""" name = "Item_Info"><input type = "submit" value = "Continue"></form>
+	<form action = "/"""+self.get_argument("Item_Info").split(",")[-1]+""""><input type = "hidden" value = " """+ ",".join(web_information)+"""" name = "Item_Info"><input type = "submit" value = "Continue"></form>
 </body>
 </html>""")
+		
 def make_app():
     return tornado.web.Application([("/Home_Page", Home_Page),("/Loading_Page", Loading_Page),("/Add_Page", Add_Page),("/Error_Page", Error_Page),("/Add_Url_Page", Add_Url_Page),("/Update_Page", Update_Page),("/Update_Url_Page", Update_Url_Page),("/Update_Page_2", Update_Page_2),("/Update_Page_3", Update_Page_3),("/Remove_Page", Remove_Page),("/Print_Page", Print_Page),("/Update_Available_Servings_Page", Update_Available_Servings_Page),])
 
