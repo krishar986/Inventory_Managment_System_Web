@@ -1,3 +1,11 @@
+#Inventory File Structure
+#Item Name, Quantity, Available Servings, Threshold, Maximum Quantity, Servings Per Unit
+#Url Information Structure
+#Store, Url, Css_Selector
+
+
+
+
 import re
 import time
 
@@ -138,8 +146,14 @@ class Update_Available_Servings_Page(tornado.web.RequestHandler):
 
 class Update_Page_2(tornado.web.RequestHandler):
     #Verified
-    def get(self):
-        self.write("""<!DOCTYPE html>
+	def get(self):
+		Inventory = open("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/Inventory_File.csv", "r")
+		all_lines = Inventory.readlines()
+		for i in all_lines:
+			i_2 = i.replace("\n","")
+			if i_2 == "":
+				all_lines.remove(i)
+		self.write("""<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
@@ -149,8 +163,12 @@ class Update_Page_2(tornado.web.RequestHandler):
 </head>
 <body>
 	<h1>Update_Page_2</h1>
-	<form action = "/Update_Page_3"><input type = "submit" value = "Update Item Info"></form>
-    <form action = "/Update_Url_Page"><input type = "submit" value = "Update Url Info"></form>
+	<form action = "/Update_Page_3"><select name = "Item_Info">""") 
+		for i in all_lines:
+			name = i.split(",")[0]
+			self.write("<option value = "+'"'+name+'"'+">"+name+"</option>")
+
+		self.write("""</select><input type = "submit" value = "Update Item Info"></form>
 	<form action = "/Home_Page"><input type = "submit" value = "Back"></form>
 </body>
 </html>""")
@@ -158,18 +176,34 @@ class Update_Page_2(tornado.web.RequestHandler):
 
 class Update_Page_3(tornado.web.RequestHandler):
     #Verified
-    def get(self):
-        self.write("""<!DOCTYPE html>
+	def get(self):
+		Inventory = open("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/Inventory_File.csv", "r")
+		all_lines = Inventory.readlines()
+		item_info = []
+		for i in all_lines:
+			if self.get_argument("Item_Info") == i.split(',')[0]:
+				item_info.append(i)
+				break
+		item_info = item_info[0]
+		self.write("""<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Update Page_3</title>
+	<style>
+		th,td{border:1px solid black}
+		</style
 </head>
-<body>
-	<h1>Update_Page_2</h1>
-	<form action = "/Loading_Page"><input type = "submit" value = "Update"></form>
+<body><table><tr>""")
+
+		for i in item_info.split(","):
+			self.write("<td>"+i+"</td>")
+		self.write("""</tr></table><form action = "/Loading_Page">""")
+		for i in item_info.split(","):
+			self.write("""<label for Item_Info>What do you want to change <b><i>"""+i+"""</i></b> to?</label><input type = "text" name = "Item_Info"><br>""")
+		self.write("""<input type = "hidden" name = "Item_Info" value = '"""+ item_info.split(",")[0]+"""'><input type = "hidden" name = "Item_Info" value = "Update_Page_3"><input type = "submit" value = "Update"></form>
 	<form action = "/Home_Page"><input type = "submit" value = "Back"></form>
 </body>
 </html>""")
@@ -197,7 +231,6 @@ class Update_Url_Page(tornado.web.RequestHandler):
 class Add_Url_Page(tornado.web.RequestHandler):
     #Verified
 	def get(self):
-		web_information = self.get_arguments("Item_Info")
 		print(self.get_arguments("Item_Info")[0])
 		self.write("""<!DOCTYPE html>
 <html lang="en">
@@ -205,7 +238,7 @@ class Add_Url_Page(tornado.web.RequestHandler):
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Update Url Page</title>
+	<title>Add Url Page</title>
 </head>
 <body>
 	<h1>Add Url Page</h1>
@@ -257,7 +290,7 @@ class Loading_Page(tornado.web.RequestHandler):
 				url = "error"
 			if url != "error":
 				Chrome.refresh()
-				time.sleep(30)
+				time.sleep(10)
 				try:
 					elements = Chrome.find_element("css selector",css_selector).text
 				except Exception:
@@ -334,22 +367,28 @@ class Loading_Page(tornado.web.RequestHandler):
 				web_information.pop(0)
 				web_information.pop(0)
 				web_information.pop(0)
-				organized_web_info = [web_information[0],web_information[1]]
+				if len(web_information) == 3:
+					organized_web_info = [web_information[1],web_information[2]]
+				else:
+					organized_web_info  = [web_information[0], web_information[1]]
 			else:
 				organized_web_info = []
 				if len(web_information) == 6:
 					next_page = "Add_Url_Page"
-					organized_web_info.extend([web_information[4],web_information[0],web_information[1],web_information[2],web_information[-1]])
+					organized_web_info = [web_information[4],web_information[0],web_information[1],web_information[2]]
 				else:
 					next_page = "Home_Page"
-					organized_web_info.extend([web_information[3],web_information[0],web_information[1],web_information[2],web_information[-1]])
-					print(updated_all_lines)
-					print()
-					updated_all_lines.append(",".join(organized_web_info))
+					organized_web_info = [web_information[3],web_information[0],web_information[1],web_information[2]]
+					if len(updated_all_lines) == 0:
+						organized_web_info = ",".join(organized_web_info)
+					else:
+						organized_web_info = "\n"+",".join(organized_web_info)
+					updated_all_lines.append(organized_web_info)
 					Inventory.close()
 					Inventory = open("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/Inventory_File.csv","w")
-					Inventory.write("\n".join(updated_all_lines))
+					Inventory.write("".join(updated_all_lines))
 					Inventory.close()
+					organized_web_info = []
 		
 			self.write("""<!DOCTYPE html>
 	<html>
@@ -385,14 +424,86 @@ class Loading_Page(tornado.web.RequestHandler):
 
 	</body>
 	</html>""")
-		
+
+		if self.get_arguments("Item_Info")[-1] == "Update_Page_3":
+			web_information = self.get_arguments("Item_Info")
+			web_information.pop(-1)
+			item_name = web_information[-1]
+			for i in updated_all_lines:
+				if i.split(",")[0] == item_name:
+					item_info = i
+					break
+			web_information.pop(-1)
+			updated_item_info = item_info.split(",")
+			for i in updated_item_info:
+				if web_information[updated_item_info.index(i)] != "":
+					updated_item_info[updated_item_info.index(i)] = web_information[updated_item_info.index(i)]
+			for i in updated_item_info:
+				index = updated_item_info.index(i)
+				if index <= 5 and index > 1 and i != "":
+					updated_item_info[index] = Validating_Numeric_Inputs(i)
+				elif index > 5 and index % 3 == 0 and i != "":
+					updated_item_info[index] = Go_to_Google_Maps(i)
+				elif index > 5 and index % 3 == 1 and i != "":
+					url_and_css_selector = Open_Url(i,updated_item_info[index+1])
+					updated_item_info[index] = url_and_css_selector[0]
+					updated_item_info[index+1] = url_and_css_selector[1]
+			
+			if "error" in updated_item_info:
+				next_page = "Error_Page"
+			else:
+				next_page = "Home_Page"
+				updated_all_lines[updated_all_lines.index(item_info)] = ",".join(updated_item_info)
+				Inventory.close()
+				Inventory = open("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/Inventory_File.csv", "w")
+				Inventory.write("".join(updated_all_lines))
+				
+			self.write("""<!DOCTYPE html>
+	<html>
+	<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+	.loader {
+	border: 16px solid #f3f3f3;
+	border-radius: 50%;
+	border-top: 16px solid #3498db;
+	width: 120px;
+	height: 120px;
+	-webkit-animation: spin 2s linear infinite; 
+	animation: spin 2s linear infinite;
+	}
+
+	@-webkit-keyframes spin {
+	0% { -webkit-transform: rotate(0deg); }
+	100% { -webkit-transform: rotate(360deg); }
+	}
+
+	@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+	}
+	</style>
+	</head>
+	<body>
+
+	<div class="loader"></div>
+	<form action = "/"""+next_page+""""><input type = 'hidden' name = 'Item_Info' value = '"""+",".join([item_info,"Update_Page_3"])+"""'><input type = "submit" value = "Continue"></form>
+
+
+	</body>
+	</html>""")
 
 
 class Error_Page(tornado.web.RequestHandler):
     #Verified
 	def get(self):
 		web_information = self.get_argument("Item_Info").split(",")
-		web_information.pop(-1)
+		if web_information[-1] == "Update_Page_3":
+			web_information = self.get_argument("Item_Info").split(",")[0]
+		else:
+			web_information = self.get_argument("Item_Info").split(",")
+			web_information.pop(-1)
+			web_information = ",".join(web_information)
 		self.write("""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -403,7 +514,7 @@ class Error_Page(tornado.web.RequestHandler):
 </head>
 <body>
 	<h1>Error Page</h1>
-	<form action = "/"""+self.get_argument("Item_Info").split(",")[-1]+""""><input type = "hidden" value = " """+ ",".join(web_information)+"""" name = "Item_Info"><input type = "submit" value = "Continue"></form>
+	<form action = "/"""+self.get_argument("Item_Info").split(",")[-1]+""""><input type = "hidden" value = " """+ web_information+"""" name = "Item_Info"><input type = "submit" value = "Continue"></form>
 </body>
 </html>""")
 		
