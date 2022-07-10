@@ -350,12 +350,6 @@ class Loading_Page(tornado.web.RequestHandler):
 			message.attach(MIMEText(html_table,"html"))
 			table = message.as_string()
 			email.sendmail("kristunisraj@hotmail.com", self.get_arguments("Item_Info")[0],"Subject:Grocery List For "+datetime.datetime.now().strftime("%x")+"\n"+table)
-			"""html_file = open("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/html_file.html","w")
-			html_file.write(html_table)
-			html_file.close()
-			Chrome = webdriver.Chrome("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/chromedriver")
-			Chrome.get("file:///Users/krist/Desktop/Python/Course%20with%20Rahul%20Bahya/Inventory%20Management%20System%20Exercises/Inventory_managment_web/html_file.html")"""
-			time.sleep(10)
 
 		def Validating_Numeric_Inputs(input_):
 			try:
