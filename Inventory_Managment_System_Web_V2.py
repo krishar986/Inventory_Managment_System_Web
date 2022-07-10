@@ -3,7 +3,7 @@
 #Url Information Structure
 #Store, Url, Css_Selector
 
-
+#email.sendmail("kristunisraj@hotmail.com", "rajivsharma76@gmail.com","Subject:Test "+"\n\n"+"Tekldfaklsfjkldsajfkljads;fjsdafjdsklfjksdajfksdaj;faslkdjklsfadjkdsajlk;;aj;fdjkasjdkasjkdafjdkjakd;jfkasjkfdajkst")
 
 
 import tornado.ioloop
@@ -334,6 +334,10 @@ class Loading_Page(tornado.web.RequestHandler):
 							</tr>           
 							"""
 			list_of_lines = []
+			email = smtplib.SMTP("smtp.office365.com", 587)
+			email.ehlo()
+			email.starttls()
+			email.login("kristunisraj@hotmail.com","Sector@161820")
 			dictionary_with_all_needed_item_values_sorted = sorted(dictionary_with_all_needed_item_values.items())
 			translation_table = str.maketrans('', '', digits)
 			for item in dictionary_with_all_needed_item_values_sorted:
@@ -342,11 +346,15 @@ class Loading_Page(tornado.web.RequestHandler):
 				list_of_lines.extend([item_values[0], item[0].translate(translation_table), item_values[2], item_values[1], dictionary_with_all_needed_item_values_sorted.index(item)])
 				
 			html_table = html_table+"</table>"+"</body>"+"</html>"
-			html_file = open("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/html_file.html","w")
+			message = MIMEMultipart()
+			message.attach(MIMEText(html_table,"html"))
+			table = message.as_string()
+			email.sendmail("kristunisraj@hotmail.com", self.get_arguments("Item_Info")[0],"Subject:Grocery List For "+datetime.datetime.now().strftime("%x")+"\n"+table)
+			"""html_file = open("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/html_file.html","w")
 			html_file.write(html_table)
 			html_file.close()
 			Chrome = webdriver.Chrome("/Users/krist/Desktop/Python/Course with Rahul Bahya/Inventory Management System Exercises/Inventory_managment_web/chromedriver")
-			Chrome.get("file:///Users/krist/Desktop/Python/Course%20with%20Rahul%20Bahya/Inventory%20Management%20System%20Exercises/Inventory_managment_web/html_file.html")
+			Chrome.get("file:///Users/krist/Desktop/Python/Course%20with%20Rahul%20Bahya/Inventory%20Management%20System%20Exercises/Inventory_managment_web/html_file.html")"""
 			time.sleep(10)
 
 		def Validating_Numeric_Inputs(input_):
