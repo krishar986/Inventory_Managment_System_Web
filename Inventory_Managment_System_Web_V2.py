@@ -217,10 +217,10 @@ class Update_Page_3(tornado.web.RequestHandler):
 </head>
 <body><table><tr>""")
 
-		for i in item_info.split(","):
+		for i in re.split(",|;",item_info):
 			self.write("<td>"+i+"</td>")
 		self.write("""</tr></table><form action = "/Loading_Page">""")
-		for i in item_info.split(","):
+		for i in re.split(",|;",item_info):
 			self.write("""<label for Item_Info>What do you want to change <b><i>"""+i+"""</i></b> to?</label><input type = "text" name = "Item_Info"><br>""")
 		self.write("""<input type = "hidden" name = "Item_Info" value = '"""+ item_info.split(",")[0]+"""'><input type = "hidden" name = "Item_Info" value = "Update_Page_3"><input type = "submit" value = "Update"></form>
 	<form action = "/Home_Page"><input type = "submit" value = "Back"></form>
@@ -295,11 +295,11 @@ class Loading_Page(tornado.web.RequestHandler):
 							dictionary_of_prices_and_stores[price] = url[0]
 							url_index += 1
 
+						old_list_of_prices = tuple(list_of_prices)
 						list_of_prices.sort()
 						cheapest_price = list_of_prices[0]
-						prices = list_of_prices
 						stores = list(dictionary_of_prices_and_stores.values())
-						price_index= prices.index(cheapest_price)
+						price_index= old_list_of_prices.index(cheapest_price)
 						store_with_cheapest_price = stores[price_index]
 						quantity_needed = float(item[4]) - float(item[1])
 						dictionary_with_all_needed_item_values[store_with_cheapest_price+str(unique_id)] = item[0]+","+str(quantity_needed)+","+str(cheapest_price)
@@ -350,6 +350,7 @@ class Loading_Page(tornado.web.RequestHandler):
 			message.attach(MIMEText(html_table,"html"))
 			table = message.as_string()
 			email.sendmail("kristunisraj@hotmail.com", self.get_arguments("Item_Info")[0],"Subject:Grocery List For "+datetime.datetime.now().strftime("%x")+"\n"+table)
+			
 
 		def Validating_Numeric_Inputs(input_):
 			try:
@@ -582,7 +583,12 @@ class Loading_Page(tornado.web.RequestHandler):
 	</body>
 	</html>""")
 		if self.get_arguments("Item_Info")[-1] == "Print_Page":
-			Print_List()
+			next_page = "Home_Page"
+			user_name = self.get_arguments("Item_Info")[0]
+			if len(regex_for_valid_username.findall(user_name)) != 1:
+				next_page = "Error_Page"
+			if next_page != "Error_Page":
+				Print_List()
 			self.write("""<!DOCTYPE html>
 	<html>
 	<head>
@@ -612,7 +618,7 @@ class Loading_Page(tornado.web.RequestHandler):
 	<body>
 
 	<div class="loader"></div>
-	<form action = "/Home_Page"><input type = "submit" value = "Continue"></form>
+	<form action = "/"""+next_page+""""><input type = "hidden" name = "Item_Info" value = "Print_Page"><input type = "submit" value = "Continue"></form>
 
 
 	</body>
